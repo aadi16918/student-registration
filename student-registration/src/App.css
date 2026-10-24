@@ -506,3 +506,117 @@ button {
     transition: none !important;
   }
 }
+
+/* ===== DESKTOP & LAPTOP LAYOUT FIX ===== */
+
+@media (min-width: 1025px) {
+  .page {
+    padding: 36px 48px;
+    align-items: center;
+  }
+
+  .registration-card {
+    width: min(100%, 620px);
+    max-width: 620px;
+    padding: 42px 48px 30px;
+    border-radius: 26px;
+  }
+
+  .brand-mark {
+    width: 66px;
+    height: 66px;
+  }
+
+  .brand-mark svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .card-header {
+    margin-bottom: 30px;
+  }
+
+  .card-header h1 {
+    font-size: 32px;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+    max-width: none;
+  }
+
+  .field {
+    margin-top: 20px;
+  }
+
+  .field label {
+    font-size: 15px;
+    margin-bottom: 9px;
+  }
+
+  .field input {
+    min-height: 54px;
+    padding: 14px 16px;
+    font-size: 16px;
+  }
+
+  .password-wrap input {
+    padding-right: 82px;
+  }
+
+  .password-toggle {
+    min-height: 38px;
+    min-width: 55px;
+    font-size: 13px;
+  }
+
+  .field-hint,
+  .field-error {
+    font-size: 13px;
+  }
+
+  .submit-button,
+  .reset-button {
+    min-height: 54px;
+    font-size: 15px;
+  }
+
+  .card-footer {
+    font-size: 12px;
+  }
+}
+
+/* Medium laptop screens */
+@media (min-width: 1025px) and (max-height: 800px) {
+  .page {
+    align-items: flex-start;
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+
+  .registration-card {
+    padding-top: 28px;
+  }
+
+  .brand-mark {
+    width: 54px;
+    height: 54px;
+    margin-bottom: 14px;
+  }
+
+  .card-header {
+    margin-bottom: 20px;
+  }
+
+  .field {
+    margin-top: 14px;
+  }
+
+  .field input {
+    min-height: 48px;
+  }
+}
