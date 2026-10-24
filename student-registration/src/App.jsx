@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import "./App.css";
 
@@ -6,289 +5,252 @@ const initialForm = {
   name: "",
   email: "",
   phone: "",
-  password: "",
-  confirmPassword: "",
+  course: "",
+  gender: "",
 };
 
 function App() {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [success, setSuccess] = useState("");
 
-  function handleChange(event) {
+  const handleChange = (event) => {
     const { name, value } = event.target;
 
-    setForm((previous) => ({ ...previous, [name]: value }));
+    setForm((previous) => ({
+      ...previous,
+      [name]:
+        name === "phone"
+          ? value.replace(/\D/g, "").slice(0, 10)
+          : value,
+    }));
+
     setErrors((previous) => ({ ...previous, [name]: "" }));
     setSuccess("");
-  }
+  };
 
-  function validate() {
-    const nextErrors = {};
+  const validate = () => {
+    const newErrors = {};
 
     if (!form.name.trim()) {
-      nextErrors.name = "Please enter your full name.";
-    } else if (form.name.trim().length < 2) {
-      nextErrors.name = "Name must contain at least 2 characters.";
+      newErrors.name = "Please enter your full name.";
+    } else if (!/^[a-zA-Z\s.'-]+$/.test(form.name.trim())) {
+      newErrors.name = "Please enter a valid name.";
     }
 
     if (!form.email.trim()) {
-      nextErrors.email = "Please enter your email address.";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-      nextErrors.email = "Please enter a valid email address.";
+      newErrors.email = "Please enter your email address.";
+    } else if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())
+    ) {
+      newErrors.email = "Please enter a valid email address.";
     }
 
-    if (!form.phone.trim()) {
-      nextErrors.phone = "Please enter your mobile number.";
-    } else if (!/^[6-9]\d{9}$/.test(form.phone.trim())) {
-      nextErrors.phone = "Enter a valid 10-digit Indian mobile number.";
+    if (!form.phone) {
+      newErrors.phone = "Please enter your phone number.";
+    } else if (!/^[6-9]\d{9}$/.test(form.phone)) {
+      newErrors.phone = "Enter a valid 10-digit Indian mobile number.";
     }
 
-    if (!form.password) {
-      nextErrors.password = "Please create a password.";
-    } else if (form.password.length < 8) {
-      nextErrors.password = "Password must be at least 8 characters.";
+    if (!form.course) {
+      newErrors.course = "Please select a course.";
     }
 
-    if (!form.confirmPassword) {
-      nextErrors.confirmPassword = "Please confirm your password.";
-    } else if (form.confirmPassword !== form.password) {
-      nextErrors.confirmPassword = "Your passwords do not match.";
+    if (!form.gender) {
+      newErrors.gender = "Please select your gender.";
     }
 
-    return nextErrors;
-  }
+    return newErrors;
+  };
 
-  function handleSubmit(event) {
+  const handleSubmit = (event) => {
     event.preventDefault();
 
-    const nextErrors = validate();
-    setErrors(nextErrors);
+    const validationErrors = validate();
+    setErrors(validationErrors);
     setSuccess("");
 
-    if (Object.keys(nextErrors).length > 0) {
-      const firstInvalidField = Object.keys(nextErrors)[0];
-      document.getElementById(firstInvalidField)?.focus();
+    if (Object.keys(validationErrors).length > 0) return;
+
+    const existingStudents = JSON.parse(
+      localStorage.getItem("registeredStudents") || "[]"
+    );
+
+    const emailExists = existingStudents.some(
+      (student) =>
+        student.email.toLowerCase() === form.email.trim().toLowerCase()
+    );
+
+    if (emailExists) {
+      setErrors({
+        email: "This email is already registered.",
+      });
       return;
     }
 
-    setSuccess(
-      `You're all set, ${form.name.trim()}! Your form passed validation.`
-    );
-  }
+    const newStudent = {
+      ...form,
+      name: form.name.trim(),
+      email: form.email.trim(),
+      id: Date.now(),
+      registeredAt: new Date().toLocaleDateString(),
+    };
 
-  function handleReset() {
+    localStorage.setItem(
+      "registeredStudents",
+      JSON.stringify([...existingStudents, newStudent])
+    );
+
+    setForm(initialForm);
+    setErrors({});
+    setSuccess("Registration completed successfully!");
+  };
+
+  const handleReset = () => {
     setForm(initialForm);
     setErrors({});
     setSuccess("");
-    setShowPassword(false);
-    setShowConfirmPassword(false);
-  }
-
-  function renderError(field) {
-    return errors[field] ? (
-      <p className="field-error" id={`${field}-error`} role="alert">
-        <span aria-hidden="true">!</span> {errors[field]}
-      </p>
-    ) : null;
-  }
+  };
 
   return (
-    <main className="page">
-      <div className="ambient ambient-one" aria-hidden="true" />
-      <div className="ambient ambient-two" aria-hidden="true" />
-
-      <section className="registration-card" aria-labelledby="page-title">
-        <header className="card-header">
-          <div className="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path
-                d="M2.5 9.2 12 4l9.5 5.2L12 14.4 2.5 9.2Z"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M6.5 11.5v4.2c3.5 2.7 7.5 2.7 11 0v-4.2M21.5 9.5v6"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-
-          <p className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</p>
-          <h1 id="page-title">Student Registration</h1>
+    <main className="page-wrapper">
+      <section className="registration-card">
+        <div className="form-header">
+          <div className="brand-mark">SR</div>
+          <p className="eyebrow">STUDENT PORTAL</p>
+          <h1>Student Registration</h1>
           <p className="subtitle">
-            Create your account and get ready to learn.
+            Fill in your details to begin your academic journey.
           </p>
-        </header>
+        </div>
 
         {success && (
-          <div className="success-message" role="status" aria-live="polite">
-            <span className="success-icon" aria-hidden="true">✓</span>
-            <div>
-              <strong>Registration form completed!</strong>
-              <p>{success}</p>
-              <small>
-                Demo only — your information has not been saved to a server.
-              </small>
-            </div>
+          <div className="success-message" role="status">
+            <span className="success-icon">✓</span>
+            {success}
           </div>
         )}
 
         <form onSubmit={handleSubmit} noValidate>
-          <div className="field">
-            <label htmlFor="name">Full name</label>
+          <div className="form-group">
+            <label htmlFor="name">Full Name</label>
             <input
               id="name"
-              name="name"
               type="text"
-              autoComplete="name"
-              placeholder="e.g. Aditi Sharma"
+              name="name"
+              placeholder="Enter your full name"
               value={form.name}
               onChange={handleChange}
+              autoComplete="name"
               aria-invalid={Boolean(errors.name)}
-              aria-describedby={errors.name ? "name-error" : undefined}
             />
-            {renderError("name")}
-          </div>
-
-          <div className="field">
-            <label htmlFor="email">Email address</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={handleChange}
-              aria-invalid={Boolean(errors.email)}
-              aria-describedby={errors.email ? "email-error" : undefined}
-            />
-            {renderError("email")}
-          </div>
-
-          <div className="field">
-            <label htmlFor="phone">Mobile number</label>
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              inputMode="numeric"
-              autoComplete="tel-national"
-              maxLength={10}
-              placeholder="10-digit mobile number"
-              value={form.phone}
-              onChange={(event) =>
-                handleChange({
-                  ...event,
-                  target: {
-                    ...event.target,
-                    name: "phone",
-                    value: event.target.value.replace(/\D/g, "").slice(0, 10),
-                  },
-                })
-              }
-              aria-invalid={Boolean(errors.phone)}
-              aria-describedby={errors.phone ? "phone-error" : undefined}
-            />
-            {renderError("phone")}
-          </div>
-
-          <div className="field">
-            <label htmlFor="password">Password</label>
-            <div className="password-wrap">
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="new-password"
-                placeholder="At least 8 characters"
-                value={form.password}
-                onChange={handleChange}
-                aria-invalid={Boolean(errors.password)}
-                aria-describedby={
-                  errors.password ? "password-error" : "password-hint"
-                }
-              />
-              <button
-                className="password-toggle"
-                type="button"
-                onClick={() => setShowPassword((value) => !value)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                aria-pressed={showPassword}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </div>
-            {renderError("password")}
-            {!errors.password && (
-              <p className="field-hint" id="password-hint">
-                Use at least 8 characters.
-              </p>
+            {errors.name && (
+              <span className="error-message">{errors.name}</span>
             )}
           </div>
 
-          <div className="field">
-            <label htmlFor="confirmPassword">Confirm password</label>
-            <div className="password-wrap">
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                autoComplete="new-password"
-                placeholder="Enter your password again"
-                value={form.confirmPassword}
-                onChange={handleChange}
-                aria-invalid={Boolean(errors.confirmPassword)}
-                aria-describedby={
-                  errors.confirmPassword
-                    ? "confirmPassword-error"
-                    : undefined
-                }
-              />
-              <button
-                className="password-toggle"
-                type="button"
-                onClick={() =>
-                  setShowConfirmPassword((value) => !value)
-                }
-                aria-label={
-                  showConfirmPassword
-                    ? "Hide confirmation password"
-                    : "Show confirmation password"
-                }
-                aria-pressed={showConfirmPassword}
-              >
-                {showConfirmPassword ? "Hide" : "Show"}
-              </button>
-            </div>
-            {renderError("confirmPassword")}
+          <div className="form-group">
+            <label htmlFor="email">Email Address</label>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={handleChange}
+              autoComplete="email"
+              aria-invalid={Boolean(errors.email)}
+            />
+            {errors.email && (
+              <span className="error-message">{errors.email}</span>
+            )}
           </div>
 
-          <button className="submit-button" type="submit">
-            <span>Create account</span>
-            <span className="button-arrow" aria-hidden="true">→</span>
-          </button>
+          <div className="form-group">
+            <label htmlFor="phone">Mobile Number</label>
+            <input
+              id="phone"
+              type="tel"
+              name="phone"
+              placeholder="10-digit mobile number"
+              value={form.phone}
+              onChange={handleChange}
+              maxLength={10}
+              inputMode="numeric"
+              autoComplete="tel"
+              aria-invalid={Boolean(errors.phone)}
+            />
+            {errors.phone && (
+              <span className="error-message">{errors.phone}</span>
+            )}
+          </div>
 
-          <button
-            className="reset-button"
-            type="button"
-            onClick={handleReset}
-          >
-            Reset form
-          </button>
+          <div className="form-group">
+            <label htmlFor="course">Select Course</label>
+            <select
+              id="course"
+              name="course"
+              value={form.course}
+              onChange={handleChange}
+              aria-invalid={Boolean(errors.course)}
+            >
+              <option value="">Choose your course</option>
+              <option value="B.Tech Software Engineering">
+                B.Tech Software Engineering
+              </option>
+              <option value="B.Tech Computer Engineering">
+                B.Tech Computer Engineering
+              </option>
+              <option value="B.Tech Information Technology">
+                B.Tech Information Technology
+              </option>
+              <option value="BCA">BCA</option>
+              <option value="MCA">MCA</option>
+              <option value="BBA">BBA</option>
+            </select>
+            {errors.course && (
+              <span className="error-message">{errors.course}</span>
+            )}
+          </div>
+
+          <fieldset className="form-group gender-group">
+            <legend>Gender</legend>
+            <div className="gender-options">
+              {["Female", "Male", "Other"].map((gender) => (
+                <label className="gender-option" key={gender}>
+                  <input
+                    type="radio"
+                    name="gender"
+                    value={gender}
+                    checked={form.gender === gender}
+                    onChange={handleChange}
+                  />
+                  <span>{gender}</span>
+                </label>
+              ))}
+            </div>
+            {errors.gender && (
+              <span className="error-message">{errors.gender}</span>
+            )}
+          </fieldset>
+
+          <div className="button-group">
+            <button className="submit-button" type="submit">
+              Register Now <span aria-hidden="true">→</span>
+            </button>
+            <button
+              className="reset-button"
+              type="button"
+              onClick={handleReset}
+            >
+              Reset
+            </button>
+          </div>
         </form>
 
-        <footer className="card-footer">
-          <span className="footer-dot" aria-hidden="true" />
-          ReactJS <span aria-hidden="true">·</span> Client-side validation
-        </footer>
+        <p className="form-footer">
+          Please ensure all information is correct before submitting.
+        </p>
       </section>
     </main>
   );
